@@ -2,7 +2,7 @@ defmodule Identicon.Image do
   defstruct color: nil, hex: nil, grid: nil
   @type color :: {integer(), integer(), integer()}
   @type hex :: list(integer())
-  @type grid :: list(list(integer()))
+  @type grid :: list({integer(), integer()})
   @type t :: %Identicon.Image{color: color() | nil, hex: hex() | nil, grid: grid() | nil}
 
   @doc """

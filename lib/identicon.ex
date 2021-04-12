@@ -5,6 +5,47 @@ defmodule Identicon do
     |> Identicon.Image.with_hex()
     |> pick_color()
     |> make_grid()
+    |> filter_odd_squares()
+  end
+
+  @doc """
+    Filter out odd squares from the `grid`
+
+    ## Examples
+
+      iex> Identicon.filter_odd_squares(
+      ...>  %Identicon.Image{
+      ...>    grid: [
+      ...>      {1, 0},
+      ...>      {2, 1},
+      ...>      {3, 2},
+      ...>      {2, 3},
+      ...>      {1, 4},
+      ...>      {4, 5},
+      ...>      {5, 6},
+      ...>      {6, 7},
+      ...>      {5, 8},
+      ...>      {4, 9}
+      ...>    ]
+      ...>  }
+      ...>)
+      %Identicon.Image{
+          grid: [
+            {2, 1},
+            {2, 3},
+            {4, 5},
+            {6, 7},
+            {4, 9}
+          ]
+        }
+  """
+  @spec filter_odd_squares(image :: Identicon.Image.t()) :: Identicon.Image.t()
+  def filter_odd_squares(image = %Identicon.Image{grid: grid}) do
+    image
+    |> Identicon.Image.with_grid(
+      grid
+      |> Enum.filter(fn {x, _} -> Bitwise.band(x, 1) == 0 end)
+    )
   end
 
   @doc """
@@ -14,13 +55,60 @@ defmodule Identicon do
     ## Examples
 
         iex> Identicon.make_grid(%Identicon.Image{hex: [1, 2, 3, 4]})
-        %Identicon.Image{hex: [1, 2, 3, 4], grid: [[1, 2, 3, 2, 1]]}
+        %Identicon.Image{hex: [1, 2, 3, 4], grid: [{1, 0}, {2, 1}, {3, 2}, {2, 3}, {1, 4}]}
         iex> Identicon.make_grid(%Identicon.Image{hex: [1, 2, 3, 4, 5, 6]})
-        %Identicon.Image{hex: [1, 2, 3, 4, 5, 6], grid: [[1, 2, 3, 2, 1], [4, 5, 6, 5, 4]]}
+        %Identicon.Image{
+          hex: [1, 2, 3, 4, 5, 6],
+          grid: [
+            {1, 0},
+            {2, 1},
+            {3, 2},
+            {2, 3},
+            {1, 4},
+            {4, 5},
+            {5, 6},
+            {6, 7},
+            {5, 8},
+            {4, 9}
+          ]
+        }
         iex> Identicon.make_grid(%Identicon.Image{hex: [1, 2, 3, 4, 5, 6, 7, 8]})
-        %Identicon.Image{hex: [1, 2, 3, 4, 5, 6, 7, 8], grid: [[1, 2, 3, 2, 1], [4, 5, 6, 5, 4]]}
+        %Identicon.Image{
+          hex: [1, 2, 3, 4, 5, 6, 7, 8],
+          grid: [
+            {1, 0},
+            {2, 1},
+            {3, 2},
+            {2, 3},
+            {1, 4},
+            {4, 5},
+            {5, 6},
+            {6, 7},
+            {5, 8},
+            {4, 9}
+          ]
+        }
         iex> Identicon.make_grid(%Identicon.Image{hex: [1, 2, 3, 4, 5, 6, 7, 8, 9]})
-        %Identicon.Image{hex: [1, 2, 3, 4, 5, 6, 7, 8, 9], grid: [[1, 2, 3, 2, 1], [4, 5, 6, 5, 4], [7, 8, 9, 8, 7]]}
+        %Identicon.Image{
+          hex: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+          grid: [
+            {1, 0},
+            {2, 1},
+            {3, 2},
+            {2, 3},
+            {1, 4},
+            {4, 5},
+            {5, 6},
+            {6, 7},
+            {5, 8},
+            {4, 9},
+            {7, 10},
+            {8, 11},
+            {9, 12},
+            {8, 13},
+            {7, 14}
+          ]
+        }
   """
   @spec make_grid(image :: Identicon.Image.t()) :: Identicon.Image.t()
   def make_grid(image = %Identicon.Image{hex: hex}) do
@@ -28,7 +116,8 @@ defmodule Identicon do
     |> Identicon.Image.with_grid(
       hex
       |> Enum.chunk_every(3, 3, :discard)
-      |> Enum.map(&mirror_row/1)
+      |> Enum.flat_map(&mirror_row/1)
+      |> Enum.with_index()
     )
   end
 
