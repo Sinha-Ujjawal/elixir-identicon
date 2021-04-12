@@ -27,7 +27,7 @@ defmodule Identicon do
     image
     |> Identicon.Image.with_grid(
       Enum.chunk_every(hex, 3, 3, :discard)
-      |> Enum.map(fn xs = [x0, x1 | _] -> xs ++ [x1, x0] end)
+      |> Enum.map(fn xs = [x0, x1, _] -> xs ++ [x1, x0] end)
     )
   end
 
