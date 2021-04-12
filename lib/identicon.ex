@@ -28,8 +28,25 @@ defmodule Identicon do
     |> Identicon.Image.with_grid(
       hex
       |> Enum.chunk_every(3, 3, :discard)
-      |> Enum.map(fn xs = [x0, x1, _] -> xs ++ [x1, x0] end)
+      |> Enum.map(&mirror_row/1)
     )
+  end
+
+  @doc """
+    Mirrors a list of integers, making the last element as pivot
+
+    ## Examples
+
+      iex> Identicon.mirror_row([])
+      []
+      iex> Identicon.mirror_row([1, 2])
+      [1, 2, 1]
+      iex> Identicon.mirror_row([1, 2, 3])
+      [1, 2, 3, 2, 1]
+  """
+  @spec mirror_row(row :: list(integer())) :: list(integer())
+  def mirror_row(row) do
+    row ++ (row |> Enum.reverse() |> Enum.drop(1))
   end
 
   @doc """
