@@ -1,4 +1,13 @@
 defmodule Identicon do
+  @doc """
+    For creating and saving a unique identicon for a given string `str`
+
+    ## Examples
+
+      iex> Identicon.create("ujjawal sinha")
+      iex> File.rm!("ujjawal sinha.png")
+  """
+  @spec create(str :: charlist()) :: :ok
   def create(str) do
     str
     |> hash_str()
@@ -6,6 +15,78 @@ defmodule Identicon do
     |> pick_color()
     |> make_grid()
     |> filter_odd_squares()
+    |> build_pixel_map()
+    |> fill_pixel_map()
+    |> save_image(str)
+  end
+
+  @doc """
+    Saves the image to the persistent storage
+  """
+  @spec save_image(image :: binary(), str :: charlist()) :: :ok
+  def save_image(image, str) do
+    File.write!("#{str}.png", image)
+  end
+
+  @doc """
+    Fills the `pixel_map` with the given `color`
+  """
+  @spec fill_pixel_map(image :: Identicon.Image.t()) :: binary()
+  def fill_pixel_map(%Identicon.Image{pixel_map: pixel_map, color: color}) do
+    image = :egd.create(250, 250)
+    fill = :egd.color(color)
+
+    Enum.each(pixel_map, fn {start, stop} ->
+      :egd.filledRectangle(image, start, stop, fill)
+    end)
+
+    :egd.render(image)
+  end
+
+  @doc """
+    Updates `pixel_map` field of `Identicon.Image` struct.
+    Use `grid` field to create the `pixel_map`
+
+    ## Examples
+
+      iex> Identicon.build_pixel_map(
+      ...>  %Identicon.Image{
+      ...>    grid: [
+      ...>      {2, 1},
+      ...>      {2, 3},
+      ...>      {4, 5},
+      ...>      {6, 7},
+      ...>      {4, 9}
+      ...>    ]
+      ...>  }
+      ...>)
+      %Identicon.Image{
+        color: nil,
+        grid: [{2, 1}, {2, 3}, {4, 5}, {6, 7}, {4, 9}],
+        hex: nil,
+        pixel_map: [
+          {{50, 0}, {100, 50}},
+          {{150, 0}, {200, 50}},
+          {{0, 50}, {50, 100}},
+          {{100, 50}, {150, 100}},
+          {{200, 50}, {250, 100}}
+        ]
+      }
+
+  """
+  @spec build_pixel_map(image :: Identicon.Image.t()) :: Identicon.Image.t()
+  def build_pixel_map(%Identicon.Image{grid: grid} = image) do
+    image
+    |> Identicon.Image.with_pixel_map(
+      grid
+      |> Enum.map(fn {_, index} ->
+        horizontal = rem(index, 5) * 50
+        vertical = div(index, 5) * 50
+        top_left = {horizontal, vertical}
+        bottom_right = {horizontal + 50, vertical + 50}
+        {top_left, bottom_right}
+      end)
+    )
   end
 
   @doc """
@@ -30,14 +111,14 @@ defmodule Identicon do
       ...>  }
       ...>)
       %Identicon.Image{
-          grid: [
-            {2, 1},
-            {2, 3},
-            {4, 5},
-            {6, 7},
-            {4, 9}
-          ]
-        }
+        grid: [
+          {2, 1},
+          {2, 3},
+          {4, 5},
+          {6, 7},
+          {4, 9}
+        ]
+      }
   """
   @spec filter_odd_squares(image :: Identicon.Image.t()) :: Identicon.Image.t()
   def filter_odd_squares(image = %Identicon.Image{grid: grid}) do

@@ -1,9 +1,15 @@
 defmodule Identicon.Image do
-  defstruct color: nil, hex: nil, grid: nil
+  defstruct color: nil, hex: nil, grid: nil, pixel_map: nil
   @type color :: {integer(), integer(), integer()}
   @type hex :: list(integer())
   @type grid :: list({integer(), integer()})
-  @type t :: %Identicon.Image{color: color() | nil, hex: hex() | nil, grid: grid() | nil}
+  @type pixel_map :: list({{integer(), integer()}, {integer(), integer()}})
+  @type t :: %Identicon.Image{
+          color: color() | nil,
+          hex: hex() | nil,
+          grid: grid() | nil,
+          pixel_map: pixel_map() | nil
+        }
 
   @doc """
     Constructor function for struct `Indenticon.Image`
@@ -79,5 +85,26 @@ defmodule Identicon.Image do
   @spec with_grid(image :: t(), grid :: grid()) :: t()
   def with_grid(image, grid) do
     %Identicon.Image{image | grid: grid}
+  end
+
+  @spec with_pixel_map(pixel_map :: pixel_map()) :: t()
+  def with_pixel_map(pixel_map) do
+    %Identicon.Image{pixel_map: pixel_map}
+  end
+
+  @doc """
+    Constructor function for struct `Indenticon.Image`
+
+    ## Examples
+
+        iex> Identicon.Image.with_pixel_map([{{100, 0}, {0, 400}}, {{120, 5}, {7, 300}}])
+        %Identicon.Image{pixel_map: [{{100, 0}, {0, 400}}, {{120, 5}, {7, 300}}]}
+        iex> empty_image = Identicon.Image.empty
+        iex> empty_image |> Identicon.Image.with_pixel_map([{{100, 0}, {0, 400}}, {{120, 5}, {7, 300}}])
+        %Identicon.Image{pixel_map: [{{100, 0}, {0, 400}}, {{120, 5}, {7, 300}}]}
+  """
+  @spec with_pixel_map(image :: t(), pixel_map :: pixel_map()) :: t()
+  def with_pixel_map(image, pixel_map) do
+    %Identicon.Image{image | pixel_map: pixel_map}
   end
 end
